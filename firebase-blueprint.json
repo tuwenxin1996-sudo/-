@@ -1,0 +1,241 @@
+{
+  "entities": {
+    "Note": {
+      "title": "Note",
+      "description": "Monitored Little Red Book note performance and AIS citations",
+      "type": "object",
+      "properties": {
+        "note_id": { "type": "string" },
+        "author_account_id": { "type": "string" },
+        "brand_id": { "type": "string" },
+        "xsec_token": { "type": ["string", "null"] },
+        "xsec_token_expires_at": { "type": ["string", "null"] },
+        "title": { "type": "string" },
+        "body": { "type": ["string", "null"] },
+        "body_length": { "type": ["integer", "null"] },
+        "content_type": { "type": ["string", "null"], "enum": ["IMAGE_TEXT", "VIDEO", "LONG_FORM"] },
+        "cover_url": { "type": "string" },
+        "video_url": { "type": ["string", "null"] },
+        "image_urls": { "type": ["array", "null"], "items": { "type": "string" } },
+        "tags": { "type": ["array", "null"], "items": { "type": "string" } },
+        "category_l1": { "type": ["string", "null"] },
+        "category_l2": { "type": ["string", "null"] },
+        "commercial_tag": { "type": ["string", "null"] },
+        "published_at": { "type": "string", "format": "date-time" },
+        "likes": { "type": "integer" },
+        "collects": { "type": "integer" },
+        "comments": { "type": "integer" },
+        "shares": { "type": "integer" },
+        "engagement_tier": { "type": ["string", "null"], "enum": ["VIRAL", "MID", "LONG_TAIL"] },
+        "first_cited_at": { "type": ["string", "null"], "format": "date-time" },
+        "last_cited_at": { "type": ["string", "null"], "format": "date-time" },
+        "total_citation_count": { "type": "integer" },
+        "covered_question_count": { "type": "integer" },
+        "citation_pattern": { "type": ["string", "null"], "enum": ["FULL_QUOTE", "PARTIAL", "LINK_ONLY"] },
+        "pattern_updated_at": { "type": ["string", "null"], "format": "date-time" },
+        "status": { "type": "string", "enum": ["ACTIVE", "DELETED", "PRIVATE", "UNREACHABLE"] },
+        "first_fetched_at": { "type": ["string", "null"], "format": "date-time" },
+        "last_fetched_at": { "type": ["string", "null"], "format": "date-time" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["note_id", "author_account_id", "brand_id", "title", "created_at"]
+    },
+    "NoteCitationDaily": {
+      "title": "NoteCitationDaily",
+      "description": "Daily citation metrics for a specific note",
+      "type": "object",
+      "properties": {
+        "note_id": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "citation_count": { "type": "integer" },
+        "avg_position": { "type": "number" },
+        "full_quote_count": { "type": "integer" },
+        "partial_quote_count": { "type": "integer" },
+        "link_only_count": { "type": "integer" }
+      },
+      "required": ["note_id", "date"]
+    },
+    "Brand": {
+      "title": "Brand",
+      "description": "A brand being monitored by NoteLens",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "logo": { "type": "string" },
+        "owner_id": { "type": "string" }
+      },
+      "required": ["name", "owner_id"]
+    },
+    "AIQuestion": {
+      "title": "AI Question",
+      "description": "An AI question/probe task for a brand",
+      "type": "object",
+      "properties": {
+        "brand_id": { "type": "string" },
+        "question_text": { "type": "string" },
+        "question_type": { "type": "string", "enum": ["BRAND", "PRODUCT", "SCENE", "COMPARE", "LONG_TAIL"] },
+        "priority": { "type": "string", "enum": ["CORE", "HIGH", "NORMAL"] },
+        "frequency_minutes": { "type": "integer" },
+        "status": { "type": "string", "enum": ["ACTIVE", "PAUSED", "ARCHIVED"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "last_collected_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["brand_id", "question_text", "question_type", "priority", "frequency_minutes"]
+    },
+    "AIAnswer": {
+      "title": "AI Answer",
+      "description": "A specific answer collected for a question",
+      "type": "object",
+      "properties": {
+        "question_id": { "type": "string" },
+        "collected_at": { "type": "string", "format": "date-time" },
+        "answer_hash": { "type": "string" },
+        "is_duplicate": { "type": "boolean" },
+        "parsed_answer_md": { "type": "string" },
+        "citation_count": { "type": "integer" },
+        "our_citation_count": { "type": "integer" },
+        "top_position": { "type": "integer" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["question_id", "collected_at", "answer_hash"]
+    },
+    "Citation": {
+      "title": "Citation",
+      "description": "A citation within an AI answer",
+      "type": "object",
+      "properties": {
+        "answer_id": { "type": "string" },
+        "note_id": { "type": "string" },
+        "position": { "type": "integer" },
+        "citation_type": { "type": "string", "enum": ["FULL_QUOTE", "PARTIAL", "LINK_ONLY"] },
+        "cited_text": { "type": "string" },
+        "brand_attribution": { "type": "string", "enum": ["OURS", "COMPETITOR", "NEUTRAL"] },
+        "relevance_score": { "type": "number" }
+      },
+      "required": ["answer_id", "note_id", "position"]
+    },
+    "Account": {
+      "title": "Account",
+      "description": "A Red (XHS) account being monitored",
+      "type": "object",
+      "properties": {
+        "xhs_user_id": { "type": "string" },
+        "handle": { "type": "string" },
+        "nickname": { "type": "string" },
+        "avatar_url": { "type": "string" },
+        "bio": { "type": "string" },
+        "gender": { "type": "string" },
+        "ip_location": { "type": "string" },
+        "followers_count": { "type": "integer" },
+        "followers_tier": { "type": "string" },
+        "following_count": { "type": "integer" },
+        "notes_count": { "type": "integer" },
+        "commercial_tier": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE", "BANNED", "DELETED"] },
+        "first_discovered_at": { "type": "string", "format": "date-time" },
+        "last_profile_fetched_at": { "type": "string", "format": "date-time" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["xhs_user_id", "nickname", "created_at"]
+    },
+    "BrandAccount": {
+      "title": "Brand Account",
+      "description": "Relationship between a brand and a monitored account",
+      "type": "object",
+      "properties": {
+        "brand_id": { "type": "string" },
+        "account_id": { "type": "string" },
+        "account_group": { "type": "string" },
+        "group_note": { "type": "string" },
+        "added_by": { "type": "string" },
+        "added_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["brand_id", "account_id", "account_group", "added_at"]
+    },
+    "AccountMetricDaily": {
+      "title": "Account Metric Daily",
+      "description": "Daily snapshot of account performance metrics",
+      "type": "object",
+      "properties": {
+        "account_id": { "type": "string" },
+        "brand_id": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "cited_notes_count": { "type": "integer" },
+        "citation_total": { "type": "integer" },
+        "avg_citation_position": { "type": "number" },
+        "citation_weight_score": { "type": "number" },
+        "full_quote_count": { "type": "integer" },
+        "partial_quote_count": { "type": "integer" },
+        "link_only_count": { "type": "integer" }
+      },
+      "required": ["account_id", "brand_id", "date"]
+    },
+    "Competitor": {
+      "title": "Competitor",
+      "description": "A competitor brand being analyzed",
+      "type": "object",
+      "properties": {
+        "brand_id": { "type": "string" },
+        "competitor_name": { "type": "string" },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "priority": { "type": "integer" },
+        "status": { "type": "string", "enum": ["ACTIVE", "INACTIVE"] },
+        "added_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["brand_id", "competitor_name", "added_at"]
+    },
+    "CompetitorAccount": {
+      "title": "Competitor Account",
+      "description": "Account associated with a competitor",
+      "type": "object",
+      "properties": {
+        "competitor_id": { "type": "string" },
+        "account_id": { "type": "string" },
+        "added_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["competitor_id", "account_id", "added_at"]
+    }
+  },
+  "firestore": {
+    "accounts/{accountId}": {
+      "schema": "Account",
+      "description": "Global account registry"
+    },
+    "brands/{brandId}": {
+      "schema": "Brand",
+      "description": "Monitored brands"
+    },
+    "brands/{brandId}/accounts/{accountId}": {
+      "schema": "BrandAccount",
+      "description": "Accounts monitored by this brand"
+    },
+    "brands/{brandId}/accounts/{accountId}/metrics/{date}": {
+      "schema": "AccountMetricDaily",
+      "description": "Daily metrics for a brand's account"
+    },
+    "brands/{brandId}/notes/{noteId}": {
+      "schema": "Note",
+      "description": "Notes monitored by this brand"
+    },
+    "brands/{brandId}/questions/{questionId}": {
+      "schema": "AIQuestion",
+      "description": "Questions associated with a brand"
+    },
+    "brands/{brandId}/questions/{questionId}/answers/{answerId}": {
+      "schema": "AIAnswer",
+      "description": "Historical answers for a question"
+    },
+    "brands/{brandId}/questions/{questionId}/answers/{answerId}/citations/{citationId}": {
+      "schema": "Citation",
+      "description": "Citations for an answer"
+    },
+    "brands/{brandId}/competitors/{competitorId}": {
+      "schema": "Competitor",
+      "description": "Competitors of a brand"
+    },
+    "brands/{brandId}/competitors/{competitorId}/accounts/{accountId}": {
+      "schema": "CompetitorAccount",
+      "description": "Accounts belonging to a competitor"
+    }
+  }
+}

@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidBrand(data) {
+      return data.keys().hasAll(['name', 'owner_id'])
+        && data.keys().size() <= 4
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && data.owner_id == request.auth.uid;
+    }
+
+    function isValidAIQuestion(data) {
+      return data.keys().hasAll(['brand_id', 'question_text', 'question_type', 'priority', 'frequency_minutes', 'status', 'created_at'])
+        && data.keys().size() <= 10
+        && data.brand_id is string && isValidId(data.brand_id)
+        && data.question_text is string && data.question_text.size() >= 5 && data.question_text.size() <= 500
+        && data.question_type in ['BRAND', 'PRODUCT', 'SCENE', 'COMPARE', 'LONG_TAIL']
+        && data.priority in ['CORE', 'HIGH', 'NORMAL']
+        && data.frequency_minutes is int
+        && data.status in ['ACTIVE', 'PAUSED', 'ARCHIVED']
+        && data.created_at is timestamp;
+    }
+
+    // --- Resource Matches ---
+
+    match /brands/{brandId} {
+      allow get: if isSignedIn() && isOwner(existing().owner_id);
+      allow list: if isSignedIn() && existing().owner_id == request.auth.uid;
+      
+      allow create: if isSignedIn() 
+        && isValidId(brandId)
+        && isValidBrand(incoming());
+
+      allow update: if isSignedIn() 
+        && isOwner(existing().owner_id)
+        && isValidBrand(incoming())
+        && incoming().owner_id == existing().owner_id; // Immutable owner
+
+      allow delete: if isSignedIn() && isOwner(existing().owner_id);
+
+      // Subcollection: Questions
+      match /questions/{questionId} {
+        // Master Gate: derived from parent brand
+        function getBrand() {
+          return get(/databases/$(database)/documents/brands/$(brandId)).data;
+        }
+
+        allow get: if isSignedIn() && isOwner(getBrand().owner_id);
+        allow list: if isSignedIn() && isOwner(getBrand().owner_id);
+
+        allow create: if isSignedIn()
+          && isValidId(questionId)
+          && isOwner(getBrand().owner_id)
+          && isValidAIQuestion(incoming())
+          && incoming().brand_id == brandId
+          && incoming().created_at == request.time;
+
+        allow update: if isSignedIn()
+          && isOwner(getBrand().owner_id)
+          && isValidAIQuestion(incoming())
+          && (
+            // Action: Update Status or Priority
+            (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'priority', 'frequency_minutes', 'last_collected_at']))
+          )
+          && incoming().brand_id == existing().brand_id
+          && incoming().created_at == existing().created_at;
+
+        allow delete: if isSignedIn() && isOwner(getBrand().owner_id);
+      }
+    }
+  }
+}

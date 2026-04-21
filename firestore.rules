@@ -1,0 +1,244 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+
+    function isValidBrand(data) {
+      return data.keys().hasAll(['name', 'owner_id'])
+        && data.keys().size() <= 4
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 100
+        && data.owner_id == request.auth.uid;
+    }
+
+    function isValidAIQuestion(data) {
+      return data.keys().hasAll(['brand_id', 'question_text', 'question_type', 'priority', 'frequency_minutes', 'status', 'created_at'])
+        // Optional fields like last_collected_at, isHit, etc. are allowed up to 10 total keys
+        && data.keys().size() <= 12
+        && data.brand_id is string && isValidId(data.brand_id)
+        && data.question_text is string && data.question_text.size() >= 5 && data.question_text.size() <= 500
+        && data.question_type in ['BRAND', 'PRODUCT', 'SCENE', 'COMPARE', 'LONG_TAIL']
+        && data.priority in ['CORE', 'HIGH', 'NORMAL']
+        && data.frequency_minutes is int
+        && data.status in ['ACTIVE', 'PAUSED', 'ARCHIVED']
+        && data.created_at is timestamp;
+    }
+
+    function isValidAIAnswer(data) {
+      return data.keys().hasAll(['question_id', 'collected_at', 'answer_hash'])
+        && data.question_id is string && isValidId(data.question_id)
+        && data.collected_at is timestamp;
+    }
+
+    function isValidCitation(data) {
+      return data.keys().hasAll(['answer_id', 'note_id', 'position'])
+        && data.answer_id is string && isValidId(data.answer_id)
+        && data.note_id is string
+        && data.position is int;
+    }
+
+    function isValidAccount(data) {
+      return data.keys().hasAll(['xhs_user_id', 'nickname', 'status', 'created_at'])
+        && data.xhs_user_id is string && data.xhs_user_id.size() >= 1
+        && data.nickname is string && data.nickname.size() >= 1
+        && data.status in ['ACTIVE', 'INACTIVE', 'BANNED', 'DELETED']
+        && data.created_at is timestamp;
+    }
+
+    function isValidBrandAccount(data) {
+      return data.keys().hasAll(['brand_id', 'account_id', 'account_group', 'added_at'])
+        && data.brand_id is string && isValidId(data.brand_id)
+        && data.account_id is string && isValidId(data.account_id)
+        && data.added_at is timestamp;
+    }
+
+    function isValidAccountMetricDaily(data) {
+      return data.keys().hasAll(['account_id', 'brand_id', 'date'])
+        && data.account_id is string && isValidId(data.account_id)
+        && data.brand_id is string && isValidId(data.brand_id)
+        && data.date is string;
+    }
+
+    function isValidNote(data) {
+      return data.keys().hasAll(['note_id', 'author_account_id', 'brand_id', 'title', 'created_at'])
+        && data.note_id is string && isValidId(data.note_id)
+        && data.author_account_id is string && isValidId(data.author_account_id)
+        && data.brand_id is string && isValidId(data.brand_id)
+        && data.title is string && data.title.size() <= 500
+        && data.status in ['ACTIVE', 'DELETED', 'PRIVATE', 'UNREACHABLE'];
+    }
+
+    function isValidNoteCitationDaily(data) {
+      return data.keys().hasAll(['note_id', 'date'])
+        && data.note_id is string && isValidId(data.note_id)
+        && data.date is string
+        && data.citation_count is int
+        && data.avg_position is float;
+    }
+
+    function isValidCompetitor(data) {
+      return data.keys().hasAll(['brand_id', 'competitor_name', 'added_at'])
+        && data.brand_id is string && isValidId(data.brand_id)
+        && data.competitor_name is string && data.competitor_name.size() <= 200
+        && data.keywords is list
+        && data.priority is int
+        && data.status in ['ACTIVE', 'INACTIVE'];
+    }
+
+    function isValidCompetitorAccount(data) {
+      return data.keys().hasAll(['competitor_id', 'account_id', 'added_at'])
+        && data.competitor_id is string && isValidId(data.competitor_id)
+        && data.account_id is string && isValidId(data.account_id);
+    }
+
+    // --- Resource Matches ---
+
+    match /accounts/{accountId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidAccount(incoming());
+      allow delete: if false; // Deny deletion from client
+    }
+
+    match /brands/{brandId} {
+      allow get: if isSignedIn() && isOwner(existing().owner_id);
+      allow list: if isSignedIn() && isOwner(existing().owner_id);
+      
+      allow create: if isSignedIn() 
+        && isValidId(brandId)
+        && isValidBrand(incoming());
+
+      allow update: if isSignedIn() 
+        && isOwner(existing().owner_id)
+        && isValidBrand(incoming())
+        && incoming().owner_id == existing().owner_id
+        && (incoming().diff(existing()).affectedKeys().hasOnly(['name', 'logo'])); 
+
+      allow delete: if isSignedIn() && isOwner(existing().owner_id);
+
+      // Subcollection: Accounts Monitored by Brand
+      match /accounts/{accountId} {
+        function getBrand() {
+          return get(/databases/$(database)/documents/brands/$(brandId)).data;
+        }
+        allow get, list: if isSignedIn() && isOwner(getBrand().owner_id);
+        allow create, update: if isSignedIn() && isOwner(getBrand().owner_id) && isValidBrandAccount(incoming());
+        allow delete: if isSignedIn() && isOwner(getBrand().owner_id);
+
+        // Subcollection: Daily Metrics
+        match /metrics/{date} {
+          allow read: if isSignedIn() && isOwner(getBrand().owner_id);
+          allow write: if false; // System only
+        }
+      }
+
+      // Subcollection: Notes
+      match /notes/{noteId} {
+        allow read: if isSignedIn() && isOwner(getBrand().owner_id);
+        allow create, update: if isSignedIn() && isOwner(getBrand().owner_id) && isValidNote(incoming());
+        allow delete: if isSignedIn() && isOwner(getBrand().owner_id);
+
+        match /daily_metrics/{date} {
+          allow read: if isSignedIn() && isOwner(getBrand().owner_id);
+          allow write: if false; // System only
+        }
+      }
+
+      // Subcollection: Questions
+      match /questions/{questionId} {
+        function getBrand() {
+          return get(/databases/$(database)/documents/brands/$(brandId)).data;
+        }
+
+        allow get: if isSignedIn() && isOwner(getBrand().owner_id);
+        allow list: if isSignedIn() && isOwner(getBrand().owner_id);
+
+        allow create: if isSignedIn()
+          && isValidId(questionId)
+          && isOwner(getBrand().owner_id)
+          && isValidAIQuestion(incoming())
+          && incoming().brand_id == brandId
+          && incoming().created_at == request.time;
+
+        allow update: if isSignedIn()
+          && isOwner(getBrand().owner_id)
+          && isValidAIQuestion(incoming())
+          && (
+            (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'priority', 'frequency_minutes', 'last_collected_at', 'question_text', 'question_type']))
+          )
+          && incoming().brand_id == existing().brand_id
+          && incoming().created_at == existing().created_at;
+
+        allow delete: if isSignedIn() && isOwner(getBrand().owner_id);
+
+        // Subcollection: Answers
+        match /answers/{answerId} {
+          allow get: if isSignedIn() && isOwner(getBrand().owner_id);
+          allow list: if isSignedIn() && isOwner(getBrand().owner_id);
+
+          allow create: if isSignedIn()
+            && isValidId(answerId)
+            && isOwner(getBrand().owner_id)
+            && isValidAIAnswer(incoming());
+
+          allow update: if isSignedIn()
+            && isOwner(getBrand().owner_id)
+            && isValidAIAnswer(incoming());
+
+          allow delete: if isSignedIn() && isOwner(getBrand().owner_id);
+
+          // Subcollection: Citations
+          match /citations/{citationId} {
+            allow get: if isSignedIn() && isOwner(getBrand().owner_id);
+            allow list: if isSignedIn() && isOwner(getBrand().owner_id);
+
+            allow create, update, delete: if isSignedIn() && isOwner(getBrand().owner_id) && isValidCitation(incoming());
+          }
+        }
+      }
+
+      // Subcollection: Competitors
+      match /competitors/{competitorId} {
+        function getBrand() {
+          return get(/databases/$(database)/documents/brands/$(brandId)).data;
+        }
+        allow read: if isSignedIn() && isOwner(getBrand().owner_id);
+        allow create: if isSignedIn() && isOwner(getBrand().owner_id) && isValidCompetitor(incoming());
+        allow update: if isSignedIn() && isOwner(getBrand().owner_id) && isValidCompetitor(incoming()) 
+          && incoming().diff(existing()).affectedKeys().hasOnly(['competitor_name', 'keywords', 'priority', 'status']);
+        allow delete: if isSignedIn() && isOwner(getBrand().owner_id);
+
+        match /accounts/{accountId} {
+          allow read: if isSignedIn() && isOwner(getBrand().owner_id);
+          allow create: if isSignedIn() && isOwner(getBrand().owner_id) && isValidCompetitorAccount(incoming());
+          allow delete: if isSignedIn() && isOwner(getBrand().owner_id);
+        }
+      }
+    }
+  }
+}
