@@ -18,10 +18,10 @@ const radarData = [
 ];
 
 const horizontalBarData = [
-  { name: '竞品A', value: 45 },
-  { name: '竞品B', value: 38 },
-  { name: '我方品牌', value: 85 },
-  { name: '竞品C', value: 20 },
+  { name: '完美日记', value: 45 },
+  { name: '小奥汀', value: 38 },
+  { name: '花西子', value: 85 },
+  { name: '橘朵', value: 20 },
 ];
 
 const stackedTrendData = [
@@ -76,9 +76,9 @@ export function PerformanceOverview() {
                  <PolarGrid />
                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 600 }} />
                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                 <Radar name="我方品牌" dataKey="A" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.5} />
-                 <Radar name="行业优秀标准" dataKey="B" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.3} />
-                 <Legend />
+                  <Radar name="花西子 (我方)" dataKey="A" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.5} />
+                  <Radar name="行业优秀标准" dataKey="B" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.3} />
+                  <Legend />
                  <Tooltip />
                </RadarChart>
              </ResponsiveContainer>

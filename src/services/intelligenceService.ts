@@ -15,21 +15,21 @@ import {
 
 const MOCK_TOPICS: TopicAnalysis[] = [
   {
-    tag: '投影仪评测',
+    tag: '空气蜜粉测评',
     count: 1240,
     our_ratio: 0.15,
     competitor_ratio: 0.45,
     trend: Array.from({ length: 7 }, (_, i) => ({ date: `04-${14+i}`, value: 150 + Math.random() * 50 }))
   },
   {
-    tag: '家庭影院',
+    tag: '东方美学彩妆',
     count: 890,
     our_ratio: 0.28,
     competitor_ratio: 0.32,
     trend: Array.from({ length: 7 }, (_, i) => ({ date: `04-${14+i}`, value: 100 + Math.random() * 40 }))
   },
   {
-    tag: '4K投影',
+    tag: '控油持妆力',
     count: 650,
     our_ratio: 0.08,
     competitor_ratio: 0.55,
@@ -47,8 +47,8 @@ const MOCK_TOPICS: TopicAnalysis[] = [
 const MOCK_RECOMMENDATIONS: StrategyRecommendation[] = [
   {
     id: 'r_01',
-    title: '提升“4K投影”话题下的渗透率',
-    content: '当前竞品极米在“4K投影”话题下的占比高达 55%，而我方仅 8%。建议增加 4K 系列产品的笔记投放。',
+    title: '提升“控油持妆”话题下的渗透率',
+    content: '当前竞品完美日记在“控油持妆”话题下的占比高达 55%，而我方仅 8%。建议增加空气蜜粉系列产品的笔记投放。',
     priority: 'HIGH',
     source_evidence: '话题分析报表 - 2024-Q2',
     status: 'PENDING',
@@ -70,7 +70,7 @@ const MOCK_ALERTS: Alert[] = [
     id: 'a_01',
     type: 'ABNORMAL_ENGAGEMENT',
     severity: 'WARNING',
-    message: '笔记 "峰米X5首测..." 互动数据增速异常，疑似遭遇恶意刷量。',
+    message: '笔记 "花西子空气蜜粉实测..." 互动数据增速异常，疑似遭遇恶意刷量。',
     related_note_id: 'note_123',
     status: 'UNREAD',
     created_at: '2024-04-20T08:15:00Z'
@@ -135,10 +135,10 @@ export const intelligenceService = {
   discoverNewQuestions: async (brandId: string): Promise<DiscoveredQuestion[]> => {
     // Mocking DOT_DOT_AI discovery with de-duplication sim
     return [
-      { id: 'dq_1', text: '峰米X5和极米H6哪个画质更好？', source: 'DOT_DOT_AI' },
-      { id: 'dq_2', text: 'Formovie X5 值得买吗？', source: 'DOT_DOT_AI', is_duplicate: true, duplicate_id: 'existing_q_101', similarity_score: 0.94 },
-      { id: 'dq_3', text: '4K激光投影仪推荐哪款？', source: 'DOT_DOT_AI' },
-      { id: 'dq_4', text: '三色激光和全色激光投影的区别？', source: 'DOT_DOT_AI' }
+      { id: 'dq_1', text: '花西子和完美日记蜜粉哪个粉质更细？', source: 'DOT_DOT_AI' },
+      { id: 'dq_2', text: '花西子空气蜜粉值得买吗？', source: 'DOT_DOT_AI', is_duplicate: true, duplicate_id: 'existing_q_101', similarity_score: 0.94 },
+      { id: 'dq_3', text: '适合大油皮的控油蜜粉推荐哪款？', source: 'DOT_DOT_AI' },
+      { id: 'dq_4', text: '蚕丝粉和云母粉在蜜粉里的区别？', source: 'DOT_DOT_AI' }
     ];
   },
   processBatchImport: async (rows: BatchImportRow[]): Promise<void> => {

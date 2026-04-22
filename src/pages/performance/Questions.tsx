@@ -68,7 +68,7 @@ export function PerformanceQuestions() {
 
     try {
       setLoading(true);
-      const brandName = 'XX美妆'; 
+      const brandName = '花西子 Florasis'; 
       await brandService.ensureBrandExists(brandId, brandName);
       let data = await questionService.getQuestions(brandId);
       
@@ -179,7 +179,7 @@ export function PerformanceQuestions() {
                       {[
                         '夏天出油如何保持底妆不花？', 
                         '混油皮夏日护肤精简方案是什么？',
-                        '笔镜持妆粉底液和竞品A哪款更遮瑕？',
+                        '花西子玉容粉底液和完美日记哪款更遮瑕？',
                         '早八党必备：5分钟出门的底妆方案',
                         '底妆暗沉发灰怎么办？求抗氧粉底液推荐',
                         '适合大油田在三亚旅游用的粉底液？'

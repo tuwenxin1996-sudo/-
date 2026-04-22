@@ -6,10 +6,10 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
 
 const BRANDS = [
-  { id: 'b_01HJK', name: 'XX美妆' },
-  { id: 'b_02ABC', name: 'YY个护' },
-  { id: 'b_03XYZ', name: 'ZZ母婴' },
-  { id: 'b_04NEW', name: 'AA服饰 (近期添加)' }
+  { id: 'b_01HJK', name: '花西子 Florasis' },
+  { id: 'b_02ABC', name: '欧莱雅 L\'Oréal' },
+  { id: 'b_03XYZ', name: 'Babycare' },
+  { id: 'b_04NEW', name: '波司登 Bosideng (近期添加)' }
 ];
 
 const TIME_RANGES = [
@@ -62,9 +62,9 @@ export function Header() {
   const userRef = useRef<HTMLDivElement>(null);
 
   const mockNotifications = [
-    { id: 1, title: '账号@子号3 七日被点点引用了10次！', type: 'success', time: '10分钟前' },
-    { id: 2, title: '竞品A可见度超越我方 +3.2pp', type: 'warning', time: '2小时前' },
-    { id: 3, title: '笔记"夏日防晒测评"首次被引用', type: 'info', time: '5小时前' }
+    { id: 1, title: '账号@花西子官方旗舰店 七日被引用了10次！', type: 'success', time: '10分钟前' },
+    { id: 2, title: '完美日记可见度超越我方 +3.2pp', type: 'warning', time: '2小时前' },
+    { id: 3, title: '笔记"花西子空气蜜粉测评"首次被引用', type: 'info', time: '5小时前' }
   ];
 
   useEffect(() => {

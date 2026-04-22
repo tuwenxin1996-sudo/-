@@ -31,9 +31,9 @@ const trendData = [
 ];
 
 const initialAlerts = [
-  { id: 1, title: '竞品A可见度超越我方 +3.2pp', type: 'warning', desc: '规则: R05 可见度断崖', time: '10分钟前' },
-  { id: 2, title: '笔记"夏日防晒测评"首次被引用', type: 'info', desc: '笔记 ID: 19823xx', time: '2小时前' },
-  { id: 3, title: '账号@子号3七日无引用', type: 'warning', desc: '规则: R02 账号沉默', time: '5小时前' },
+  { id: 1, title: '完美日记可见度超越我方 +3.2pp', type: 'warning', desc: '规则: R05 可见度断崖', time: '10分钟前' },
+  { id: 2, title: '笔记"花西子空气蜜粉测评"首次被引用', type: 'info', desc: '笔记 ID: 19823xx', time: '2小时前' },
+  { id: 3, title: '账号@花西子官方旗舰店七日无引用', type: 'warning', desc: '规则: R02 账号沉默', time: '5小时前' },
   { id: 4, title: '系统健康检查正常', type: 'info', desc: '所有区域集群已同步', time: '12小时前' },
 ];
 
