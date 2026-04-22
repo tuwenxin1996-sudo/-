@@ -14,7 +14,7 @@ import {
   Award,
   Zap,
   Globe,
-  X,
+  X, Phone, Mail,
   AlertCircle,
   Settings,
   RefreshCw,
@@ -57,6 +57,7 @@ const App = () => {
   const [scrolled, setScrolled] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 30);
@@ -369,7 +370,7 @@ const App = () => {
             <a href="#about" className="hover:text-[#3370FF] transition-all">学术背景</a>
             <a href="#expertise" className="hover:text-[#3370FF] transition-all">能力矩阵</a>
             <a href="#projects" className="hover:text-[#3370FF] transition-all">实战案例</a>
-            <button className="bg-[#1F2329] text-white px-8 py-3 rounded-full hover:bg-[#3370FF] transition-all shadow-xl hover:shadow-blue-200 flex items-center gap-2">
+            <button onClick={() => setShowContactModal(true)} className="bg-[#1F2329] text-white px-8 py-3 rounded-full hover:bg-[#3370FF] transition-all shadow-xl hover:shadow-blue-200 flex items-center gap-2">
               <Zap size={14} className="fill-current" /> 业务咨询
             </button>
           </div>
@@ -388,7 +389,7 @@ const App = () => {
               <a href="#about" onClick={() => setIsMobileMenuOpen(false)}>学术背景</a>
               <a href="#expertise" onClick={() => setIsMobileMenuOpen(false)}>能力矩阵</a>
               <a href="#projects" onClick={() => setIsMobileMenuOpen(false)}>实战案例</a>
-              <button className="mt-4 bg-[#3370FF] text-white px-10 py-4 rounded-full shadow-xl shadow-blue-200">业务咨询</button>
+              <button onClick={() => { setShowContactModal(true); setIsMobileMenuOpen(false); }} className="mt-4 bg-[#3370FF] text-white px-10 py-4 rounded-full shadow-xl shadow-blue-200">业务咨询</button>
             </div>
           </div>
         )}
@@ -957,6 +958,61 @@ const App = () => {
           </div>
         </div>
       </footer>
+      {/* Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 animate-in fade-in duration-300">
+          <div onClick={() => setShowContactModal(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl" />
+          <div className="relative bg-white w-full max-w-md rounded-[40px] shadow-2xl p-10 md:p-12 animate-in zoom-in slide-in-from-bottom-10 duration-500 overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#3370FF]/5 rounded-full -mr-16 -mt-16 blur-3xl" />
+            
+            <button 
+              onClick={() => setShowContactModal(false)}
+              className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 transition-colors"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="text-center space-y-8 relative z-10">
+              <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto text-[#3370FF] mb-6">
+                <Sparkles size={40} />
+              </div>
+              
+              <div>
+                <h3 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 mb-2">业务咨询</h3>
+                <p className="text-slate-500 font-medium text-sm">很高兴能为您提供专业效能提升服务</p>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { icon: <MessageSquare size={20} />, label: 'WECHAT', value: 'VincentU96', color: 'bg-green-50 text-green-600' },
+                  { icon: <Phone size={20} />, label: 'TEL', value: '18952589367', color: 'bg-blue-50 text-blue-600' },
+                  { icon: <Mail size={20} />, label: 'E-mail', value: 'tuwenxin@outlook.com', color: 'bg-indigo-50 text-indigo-600' }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-blue-100 hover:bg-white transition-all duration-300">
+                    <div className={`w-10 h-10 ${item.color} rounded-xl flex items-center justify-center shrink-0`}>
+                      {item.icon}
+                    </div>
+                    <div className="text-left flex-1">
+                      <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</div>
+                      <div className="text-slate-900 font-bold select-all tracking-tight">{item.value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4">
+                <button 
+                  onClick={() => setShowContactModal(false)}
+                  className="w-full bg-[#1F2329] text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-[#3370FF] transition-all shadow-lg"
+                >
+                  确认返回
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
